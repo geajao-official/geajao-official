@@ -19,25 +19,27 @@ const Admin = () => {
   const [queue, setQueue] = useState<Applicant[]>([]);
   const [selected, setSelected] = useState<Applicant>(blank);
   const [query, setQuery] = useState("");
+  const [approved, setApproved] = useState<string[]>([]);
 
   useEffect(() => {
     if (!authorized) return;
-    const loadPendingProfiles = async () => {
-      const { data, error } = await supabase.rpc("list_pending_profiles", { admin_pin: "2026" });
+    const loadProfiles = async () => {
+      const { data, error } = await supabase.rpc("list_admin_profiles", { admin_pin: "2026" });
       if (error) {
         setNotice(`Could not load accounts: ${error.message}`);
         return;
       }
-      const applicants = (data ?? []).map((profile: { id: string; real_name: string | null; username: string | null; id_image_url: string | null; created_at: string }) => {
+      const profiles = data ?? [];
+      const applicants = profiles.map((profile: { id: string; real_name: string | null; username: string | null; id_image_url: string | null; created_at: string }) => {
         const name = profile.real_name || profile.username || "Unnamed applicant";
         return { id: profile.id, name, handle: profile.username || profile.id.slice(0, 8), initials: name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase(), submitted: new Date(profile.created_at).toLocaleDateString(), file: profile.id_image_url ? "Identity document submitted" : "No identity document", preview: profile.id_image_url || undefined };
       });
       setQueue(applicants);
+      setApproved(profiles.filter((profile: { id: string; is_verified: boolean }) => profile.is_verified).map((profile: { id: string }) => profile.id));
       setSelected((current) => current.id ? applicants.find((item) => item.id === current.id) ?? applicants[0] ?? blank : applicants[0] ?? blank);
     };
-    void loadPendingProfiles();
+    void loadProfiles();
   }, [authorized]);
-  const [approved, setApproved] = useState<string[]>([]);
   const [blocked, setBlocked] = useState<string[]>([]);
   const [restricted, setRestricted] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState("");
