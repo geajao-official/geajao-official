@@ -31,7 +31,7 @@ const Admin = () => {
     setBusy(true);
     const results = await Promise.allSettled([
       supabase.rpc("list_admin_profiles", { admin_pin: PIN }),
-      supabase.rpc("list_admin_posts_fast", { admin_pin: PIN }),
+      supabase.rpc("list_admin_posts_json", { admin_pin: PIN }),
       supabase.rpc("list_admin_site_media", { admin_pin: PIN }),
     ]);
     const [profileResult, postResult, mediaResult] = results;
