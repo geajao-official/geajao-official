@@ -41,7 +41,7 @@
   button, input, textarea { font: inherit; }
   button, label, img { transform-style: preserve-3d; }
   button:not(:disabled), label[class*="cursor-pointer"], img { transition: transform 280ms ease, box-shadow 280ms ease, filter 280ms ease, border-color 280ms ease; }
-  button:not(:disabled):hover, label[class*="cursor-pointer"]:hover { transform: perspective(700px) translateY(-2px) rotateX(1deg); box-shadow: 0 10px 24px rgba(124, 58, 237, 0.16); }
+  button:not(:disabled):hover, label[class*="cursor-pointer"]:hover { transform: none; box-shadow: 0 8px 20px rgba(124, 58, 237, 0.16); }
   img:hover { transform: perspective(700px) translateY(-2px) rotateY(-2deg) scale(1.015); filter: saturate(1.08) brightness(1.04); }
   input, textarea { transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease; }
   input:focus, textarea:focus { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(124, 58, 237, 0.14); }
