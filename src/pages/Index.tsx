@@ -30,8 +30,19 @@ function AuthScreen({ onSignIn }: { onSignIn: (account: { name: string; handle: 
 function Verification({ onSubmit, onSignOut }: { onSubmit: (fileName: string) => void; onSignOut: () => void }) {
   const [fileName, setFileName] = useState("");
   const [pending, setPending] = useState(() => sessionStorage.getItem("geajao-verification") === "pending");
+  const selectFile = (file: File | undefined) => {
+    if (!file) return;
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      const applicant = JSON.parse(sessionStorage.getItem("geajao-applicant") ?? "{}");
+      sessionStorage.setItem("geajao-applicant", JSON.stringify({ ...applicant, file: file.name, preview: reader.result }));
+    };
+    reader.readAsDataURL(file);
+  };
   const [approved, setApproved] = useState(() => sessionStorage.getItem("geajao-verification") === "approved");
   useEffect(() => { const timer = window.setInterval(() => { const status = sessionStorage.getItem("geajao-verification"); setApproved(status === "approved"); }, 500); return () => window.clearInterval(timer); }, []);
+  useEffect(() => { const input = document.querySelector<HTMLInputElement>("input[type='file']"); const handleFile = () => selectFile(input?.files?.[0]); input?.addEventListener("change", handleFile); return () => input?.removeEventListener("change", handleFile); }, []);
   if (approved) return <div className="mx-auto max-w-2xl py-12"><div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-400/10 text-emerald-300"><Check className="h-6 w-6" /></div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300">Identity approved</p><h1 className="mt-3 text-3xl font-semibold">You can enter Geajao</h1><p className="mt-3 max-w-lg text-sm leading-6 text-zinc-500">An admin approved your account. Your feed is now unlocked.</p><Button onClick={() => onSubmit("approved")} className="mt-8 h-11 rounded-xl bg-violet-600 text-white hover:bg-violet-500">Enter Geajao <ArrowRight className="ml-2 h-4 w-4" /></Button></div>;
   return <div className="mx-auto max-w-2xl py-12"><button onClick={onSignOut} className="mb-10 text-xs text-zinc-500 hover:text-zinc-200">Sign out</button><div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-400/10 text-amber-300"><FileCheck2 className="h-6 w-6" /></div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">{pending ? "Under review" : "One last step"}</p><h1 className="mt-3 text-3xl font-semibold tracking-tight">{pending ? "Your ID is waiting for review" : "Verify your identity to enter"}</h1><p className="mt-3 max-w-lg text-sm leading-6 text-zinc-500">{pending ? "An authorized office admin must approve your ID before you can see or publish posts." : "Upload a clear photo of your office ID card. Only authorized admins can review it."}</p>{!pending && <div className="mt-8 rounded-2xl border border-zinc-800 bg-[#14151b] p-6"><label className="flex h-32 cursor-pointer items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-[#0f1014] text-center">{fileName ? <div><FileCheck2 className="mx-auto h-7 w-7 text-emerald-400" /><p className="mt-2 max-w-[180px] truncate text-xs text-zinc-300">{fileName}</p></div> : <div><ImageIcon className="mx-auto h-7 w-7 text-zinc-600" /><p className="mt-2 text-xs text-zinc-500">Choose ID card image</p></div>}<input type="file" accept="image/*" className="sr-only" onChange={(event) => setFileName(event.target.files?.[0]?.name ?? "")} /></label><Button disabled={!fileName} onClick={() => { sessionStorage.setItem("geajao-verification", "pending"); onSubmit(fileName); setPending(true); }} className="mt-6 h-11 w-full rounded-xl bg-violet-600 text-white hover:bg-violet-500 disabled:opacity-40">Send for review <ArrowRight className="ml-2 h-4 w-4" /></Button></div>}</div>;
 }
