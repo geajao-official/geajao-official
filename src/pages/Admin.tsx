@@ -26,20 +26,20 @@ const Admin = () => {
   const [notice, setNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const notify = (message: string) => { setNotice(message); window.setTimeout(() => setNotice(""), 3200); };
+  const loadMedia = async () => { const { data, error } = await supabase.rpc("list_admin_site_media", { admin_pin: PIN }); if (error) notify(`Media connection failed — ${error.message}`); else setMedia(data ?? []); };
   const load = async () => {
     setBusy(true);
-    const [profileResult, mediaResult, brandingResult] = await Promise.all([
+    const [profileResult, brandingResult] = await Promise.all([
       supabase.rpc("list_admin_profiles", { admin_pin: PIN }),
-      supabase.rpc("list_admin_site_media", { admin_pin: PIN }),
       supabase.rpc("get_site_branding"),
     ]);
-    if (profileResult.error || mediaResult.error || brandingResult.error) notify(`Database connection failed — ${profileResult.error?.message ?? mediaResult.error?.message ?? brandingResult.error?.message}`);
-    setProfiles(profileResult.data ?? []); setMedia(mediaResult.data ?? []); setLogoUrl(typeof brandingResult.data?.logo_url === "string" ? brandingResult.data.logo_url : ""); setSelected((current) => current ? (profileResult.data ?? []).find((item: Profile) => item.id === current.id) ?? current : (profileResult.data ?? [])[0] ?? null);
+    if (profileResult.error || brandingResult.error) notify(`Database connection failed — ${profileResult.error?.message ?? brandingResult.error?.message}`);
+    setProfiles(profileResult.data ?? []); setLogoUrl(typeof brandingResult.data?.logo_url === "string" ? brandingResult.data.logo_url : ""); setSelected((current) => current ? (profileResult.data ?? []).find((item: Profile) => item.id === current.id) ?? current : (profileResult.data ?? [])[0] ?? null);
     setBusy(false);
   };
   const loadPosts = async () => { const { data, error } = await supabase.rpc("list_admin_posts_v2", { admin_pin: PIN }); if (error) notify(`Posts connection failed — ${error.message}`); else setPosts(data ?? []); };
   useEffect(() => { if (authorized) void load(); }, [authorized]);
-  useEffect(() => { if (authorized && tab === "posts") void loadPosts(); }, [authorized, tab]);
+  useEffect(() => { if (authorized && tab === "posts") void loadPosts(); if (authorized && tab === "media") void loadMedia(); }, [authorized, tab]);
   const unlock = () => { if (pin !== PIN) return notify("That PIN does not match."); sessionStorage.setItem("geajao-admin", "1"); setAuthorized(true); };
   const approve = async () => { if (!selected) return; const { error } = await supabase.rpc("approve_profile", { target_user_id: selected.id, admin_pin: PIN }); if (error) notify(error.message); else { notify("Account approved."); await load(); } };
   const uploadMedia = async (event: ChangeEvent<HTMLInputElement>, kind: "image" | "audio") => { const file = event.target.files?.[0]; if (!file) return; if (file.size > 8 * 1024 * 1024) return notify("Please choose a file smaller than 8 MB."); setBusy(true); const url = await readFile(file); const { data, error } = await supabase.rpc("save_site_media", { admin_pin: PIN, media_kind: kind, media_url: url, media_name: file.name }); if (error) notify(error.message); else { setMedia((current) => [data, ...current]); notify("Landing media uploaded."); } setBusy(false); event.target.value = ""; };
