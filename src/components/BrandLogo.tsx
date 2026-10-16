@@ -24,6 +24,7 @@ const BrandLogo = ({ showFooter = true }: { showFooter?: boolean }) => {
         node.nodeValue = node.nodeValue.replace("A considered space for real people", "A considered space for Cadet");
         node.parentElement?.classList.add("old-english-font");
       }
+      if (node.nodeValue?.includes("A quieter kind of social.")) node.nodeValue = node.nodeValue.replace("A quieter kind of social.", "CHOLO GEAJAI");
     }
     return () => authListener.subscription.unsubscribe();
   }, []);
