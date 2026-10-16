@@ -27,16 +27,21 @@ const Admin = () => {
   const [busy, setBusy] = useState(false);
   const notify = (message: string) => { setNotice(message); window.setTimeout(() => setNotice(""), 3000); };
 
+  const loadPosts = async () => {
+    const { data, error } = await supabase.rpc("list_admin_posts_json", { admin_pin: PIN });
+    if (error) notify(`Posts could not be loaded — ${error.message}`);
+    else setPosts(data ?? []);
+  };
+
   const load = async () => {
     setBusy(true);
     const results = await Promise.allSettled([
       supabase.rpc("list_admin_profiles", { admin_pin: PIN }),
-      supabase.rpc("list_admin_posts_json", { admin_pin: PIN }),
       supabase.rpc("list_admin_site_media", { admin_pin: PIN }),
     ]);
-    const [profileResult, postResult, mediaResult] = results;
+    const [profileResult, mediaResult] = results;
     const errors = results.map((result, index) => {
-      const resource = ["accounts", "posts", "media"][index];
+      const resource = ["accounts", "media"][index];
       return result.status === "rejected"
         ? `${resource}: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`
         : result.value.error && `${resource}: ${result.value.error.message}`;
@@ -47,16 +52,15 @@ const Admin = () => {
       return;
     }
     const profilesData = profileResult.status === "fulfilled" ? profileResult.value.data ?? [] : [];
-    const postsData = postResult.status === "fulfilled" ? postResult.value.data ?? [] : [];
     const mediaData = mediaResult.status === "fulfilled" ? mediaResult.value.data ?? [] : [];
     setProfiles(profilesData);
-    setPosts(postsData);
     setMedia(mediaData);
     setSelected((current) => current ? profilesData.find((item: Profile) => item.id === current.id) ?? current : profilesData[0] ?? null);
     setBusy(false);
   };
 
   useEffect(() => { if (authorized) void load(); }, [authorized]);
+  useEffect(() => { if (authorized && tab === "posts") void loadPosts(); }, [authorized, tab]);
   const unlock = () => { if (pin !== PIN) return notify("That PIN does not match."); sessionStorage.setItem("geajao-admin", "1"); setAuthorized(true); };
   const approve = async () => { if (!selected) return; const { error } = await supabase.rpc("approve_profile", { target_user_id: selected.id, admin_pin: PIN }); if (error) notify(error.message); else { notify(`${selected.real_name} is now verified.`); await load(); } };
   const deletePost = async (postId: string) => { const { error } = await supabase.rpc("delete_post_admin", { admin_pin: PIN, post_id: postId }); if (error) notify(error.message); else { setPosts((current) => current.filter((post) => post.id !== postId)); notify("Post removed from the community."); } };
