@@ -29,15 +29,28 @@ const Admin = () => {
 
   const load = async () => {
     setBusy(true);
-    const [profileResult, postResult, mediaResult] = await Promise.all([
-      supabase.rpc("list_admin_profiles", { admin_pin: PIN }),
-      supabase.rpc("list_admin_posts", { admin_pin: PIN }),
-      supabase.rpc("list_admin_site_media", { admin_pin: PIN }),
-    ]);
-    const error = profileResult.error || postResult.error || mediaResult.error;
-    if (error) notify(`Could not load admin data: ${error.message}`);
-    else { setProfiles(profileResult.data ?? []); setPosts(postResult.data ?? []); setMedia(mediaResult.data ?? []); setSelected((current) => current ? (profileResult.data ?? []).find((item: Profile) => item.id === current.id) ?? current : (profileResult.data ?? [])[0] ?? null); }
-    setBusy(false);
+    try {
+      const [profileResult, postResult, mediaResult] = await Promise.all([
+        supabase.rpc("list_admin_profiles", { admin_pin: PIN }),
+        supabase.rpc("list_admin_posts", { admin_pin: PIN }),
+        supabase.rpc("list_admin_site_media", { admin_pin: PIN }),
+      ]);
+      const errors = [
+        profileResult.error && `accounts: ${profileResult.error.message}`,
+        postResult.error && `posts: ${postResult.error.message}`,
+        mediaResult.error && `media: ${mediaResult.error.message}`,
+      ].filter(Boolean);
+      if (errors.length) {
+        notify(`Database connection failed — ${errors.join(" · ")}`);
+        return;
+      }
+      setProfiles(profileResult.data ?? []);
+      setPosts(postResult.data ?? []);
+      setMedia(mediaResult.data ?? []);
+      setSelected((current) => current ? (profileResult.data ?? []).find((item: Profile) => item.id === current.id) ?? current : (profileResult.data ?? [])[0] ?? null);
+    } finally {
+      setBusy(false);
+    }
   };
 
   useEffect(() => { if (authorized) void load(); }, [authorized]);
