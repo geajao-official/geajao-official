@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,6 @@ import { Check, Clock3, FileCheck2, Flag, Search, ShieldAlert, ShieldCheck, Tras
 
 type Applicant = { id: string; name: string; handle: string; initials: string; submitted: string; file: string; preview?: string };
 const blank: Applicant = { id: "", name: "No applicant selected", handle: "", initials: "—", submitted: "", file: "" };
-const loadApplicants = (): Applicant[] => { const stored = localStorage.getItem("geajao-applicant") ?? sessionStorage.getItem("geajao-applicant"); return stored ? [JSON.parse(stored) as Applicant] : []; };
 
 function Mark({ initials }: { initials: string }) { return <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-xs font-semibold text-violet-200">{initials}</div>; }
 function Metric({ label, value, detail, icon }: { label: string; value: string; detail: string; icon: React.ReactNode }) { return <div className="rounded-xl border border-zinc-800 bg-[#14151b] p-5"><div className="flex items-center justify-between"><p className="text-xs text-zinc-500">{label}</p>{icon}</div><p className="mt-4 text-2xl font-semibold">{value}</p><p className="mt-1 text-[11px] text-zinc-600">{detail}</p></div>; }
@@ -17,9 +16,27 @@ const Admin = () => {
   const navigate = useNavigate();
   const [authorized, setAuthorized] = useState(() => sessionStorage.getItem("geajao-admin") === "1");
   const [pin, setPin] = useState("");
-  const [queue, setQueue] = useState(loadApplicants);
-  const [selected, setSelected] = useState<Applicant>(loadApplicants()[0] ?? blank);
+  const [queue, setQueue] = useState<Applicant[]>([]);
+  const [selected, setSelected] = useState<Applicant>(blank);
   const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    if (!authorized) return;
+    const loadPendingProfiles = async () => {
+      const { data, error } = await supabase.rpc("list_pending_profiles", { admin_pin: "2026" });
+      if (error) {
+        setNotice(`Could not load accounts: ${error.message}`);
+        return;
+      }
+      const applicants = (data ?? []).map((profile: { id: string; real_name: string | null; username: string | null; id_image_url: string | null; created_at: string }) => {
+        const name = profile.real_name || profile.username || "Unnamed applicant";
+        return { id: profile.id, name, handle: profile.username || profile.id.slice(0, 8), initials: name.split(" ").map((part) => part[0]).join("").slice(0, 2).toUpperCase(), submitted: new Date(profile.created_at).toLocaleDateString(), file: profile.id_image_url ? "Identity document submitted" : "No identity document", preview: profile.id_image_url || undefined };
+      });
+      setQueue(applicants);
+      setSelected((current) => current.id ? applicants.find((item) => item.id === current.id) ?? applicants[0] ?? blank : applicants[0] ?? blank);
+    };
+    void loadPendingProfiles();
+  }, [authorized]);
   const [approved, setApproved] = useState<string[]>([]);
   const [blocked, setBlocked] = useState<string[]>([]);
   const [restricted, setRestricted] = useState<Record<string, string>>({});
