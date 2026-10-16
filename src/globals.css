@@ -41,6 +41,9 @@
   main, section, footer { font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   header, nav { font-family: "UnifrakturMaguntia", "Old English Text MT", serif; }
   .old-english-font { font-family: "UnifrakturMaguntia", "Old English Text MT", serif; }
+  .brand-logo-hover { position: relative; display: inline-flex; align-items: center; }
+  .brand-logo-hover::after { content: "GEAJAO | গ্যাজাও"; position: absolute; left: calc(100% + 0.75rem); top: 50%; white-space: nowrap; color: #c4b5fd; font-family: "Space Grotesk", sans-serif; font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; opacity: 0; pointer-events: none; transform: translateY(-50%) translateX(-0.35rem); transition: opacity 220ms ease, transform 220ms ease; }
+  .brand-logo-hover:hover::after { opacity: 1; transform: translateY(-50%) translateX(0); }
   .geajai-hover { position: relative; display: inline-block; vertical-align: baseline; }
   .geajai-hover::after { content: "গ্যাজাই"; position: absolute; top: 0; left: 50%; white-space: nowrap; opacity: 0; transform: translateX(-50%) translateY(0.04em); transition: opacity 220ms ease, transform 220ms ease; pointer-events: none; }
   .geajai-hover:hover { color: transparent; }
