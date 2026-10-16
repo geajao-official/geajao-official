@@ -25,7 +25,10 @@ const BrandLogo = ({ showFooter = true }: { showFooter?: boolean }) => {
         node.parentElement?.classList.add("old-english-font");
       }
       if (node.nodeValue?.includes("A quieter kind of ")) node.nodeValue = node.nodeValue.replace("A quieter kind of ", "CHOLO ");
-      if (node.nodeValue?.includes("social.")) node.nodeValue = node.nodeValue.replace("social.", "GEAJAI");
+      if (node.nodeValue?.includes("social.")) {
+        node.nodeValue = node.nodeValue.replace("social.", "GEAJAI");
+        node.parentElement?.classList.add("geajai-hover");
+      }
     }
     return () => authListener.subscription.unsubscribe();
   }, []);
