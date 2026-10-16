@@ -30,32 +30,8 @@ import {
 
 const badWords = ["idiot", "stupid", "hate", "damn"];
 
-const initialPosts = [
-  {
-    id: 1,
-    name: "Maya Chen",
-    handle: "mayac",
-    time: "18 min ago",
-    initials: "MC",
-    tone: "from-violet-500/30 to-sky-500/10",
-    copy: "Small, thoughtful updates make a community feel like home. What are you making space for this week?",
-    likes: 42,
-    comments: 8,
-    liked: false,
-  },
-  {
-    id: 2,
-    name: "Andre Okafor",
-    handle: "andre.o",
-    time: "1 hr ago",
-    initials: "AO",
-    tone: "from-fuchsia-500/25 to-orange-400/10",
-    copy: "The first Geajao community meetup is coming together. Share a song that belongs on the welcome playlist.",
-    likes: 28,
-    comments: 14,
-    liked: true,
-  },
-];
+type Post = { id: number; name: string; handle: string; time: string; initials: string; tone: string; copy: string; likes: number; comments: number; liked: boolean };
+const initialPosts: Post[] = [];
 
 function Logo({ compact = false }: { compact?: boolean }) {
   return (
@@ -82,7 +58,7 @@ function FilteredText({ text }: { text: string }) {
   return <>{text.split(/(\s+)/).map((part, index) => badWords.some((word) => part.toLowerCase().includes(word)) ? <span key={index} className="rounded bg-zinc-700/80 px-1 text-transparent blur-[4px]" title="Sensitive language filtered">{part}</span> : <span key={index}>{part}</span>)}</>;
 }
 
-function AuthScreen({ onSignIn }: { onSignIn: () => void }) {
+function AuthScreen({ onSignIn }: { onSignIn: (account: { name: string; handle: string }) => void }) {
   const navigate = useNavigate();
   const [registering, setRegistering] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -91,7 +67,7 @@ function AuthScreen({ onSignIn }: { onSignIn: () => void }) {
   const [form, setForm] = useState({ username: "", password: "", name: "", contact: "" });
 
   const update = (key: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [key]: event.target.value });
-  const enter = (event: React.FormEvent) => { event.preventDefault(); if (registering) { setSubmitted(true); } else { onSignIn(); } };
+  const enter = (event: React.FormEvent) => { event.preventDefault(); if (registering) { setSubmitted(true); } else { onSignIn({ name: form.name || form.username, handle: form.username }); } };
 
   if (showAdmin) return (
     <main className="flex min-h-screen items-center justify-center bg-[#09090b] px-5 py-10 text-zinc-100">
@@ -134,7 +110,7 @@ function AuthScreen({ onSignIn }: { onSignIn: () => void }) {
   );
 }
 
-function VerificationGate({ onSubmit }: { onSubmit: () => void }) {
+function VerificationGate({ onSubmit }: { onSubmit: (fileName: string) => void }) {
   const [fileName, setFileName] = useState("");
   return <div className="mx-auto max-w-2xl py-12"><div className="mb-8 flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-400/10 text-amber-300"><FileCheck2 className="h-6 w-6" /></div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-300">One last step</p><h1 className="mt-3 text-3xl font-semibold tracking-tight">Verify your identity to enter</h1><p className="mt-3 max-w-lg text-sm leading-6 text-zinc-500">Geajao is a verified community. Upload a clear photo of your office ID card and our admins will review it privately.</p><div className="mt-8 rounded-2xl border border-zinc-800 bg-[#14151b] p-6"><div className="flex flex-col gap-6 sm:flex-row sm:items-center"><div className="flex h-32 flex-1 items-center justify-center rounded-xl border border-dashed border-zinc-700 bg-[#0f1014] text-center">{fileName ? <div><FileCheck2 className="mx-auto h-7 w-7 text-emerald-400" /><p className="mt-2 max-w-[180px] truncate text-xs text-zinc-300">{fileName}</p></div> : <label className="cursor-pointer px-6"><ImageIcon className="mx-auto h-7 w-7 text-zinc-600" /><p className="mt-2 text-xs text-zinc-500">Choose ID card image</p><input type="file" accept="image/*" className="sr-only" onChange={(e) => setFileName(e.target.files?.[0]?.name ?? "")} /></label>}</div><div className="flex-1 space-y-3 text-xs text-zinc-500"><p className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-emerald-400" /> Reviewed only by authorized admins</p><p className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-emerald-400" /> Used only to confirm your identity</p><p className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-emerald-400" /> You’ll hear back after review</p></div></div><Button disabled={!fileName} onClick={onSubmit} className="mt-6 h-11 w-full rounded-xl bg-violet-600 text-white hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-40">Send for review <ArrowRight className="ml-2 h-4 w-4" /></Button></div></div>;
 }
@@ -156,7 +132,7 @@ function Feed({ onLogout }: { onLogout: () => void }) {
 const Index = () => {
   const [session, setSession] = useState<"auth" | "verification" | "feed">("auth");
   const [reviewed, setReviewed] = useState(false);
-  if (session === "auth") return <AuthScreen onSignIn={() => { setReviewed(false); setSession("verification"); }} />;
+  if (session === "auth") return <AuthScreen onSignIn={(account) => { sessionStorage.setItem("geajao-applicant", JSON.stringify({ id: Date.now(), name: account.name, handle: account.handle, initials: account.handle.slice(0, 2).toUpperCase(), submitted: "Just now", file: "Pending ID upload" })); setReviewed(false); setSession("verification"); }} />;
   if (session === "verification") return <div className="min-h-screen bg-[#09090b] px-5 text-zinc-100"><header className="mx-auto flex max-w-5xl items-center justify-between py-6"><Logo /><button onClick={() => setSession("auth")} className="text-xs text-zinc-500 hover:text-zinc-200">Sign out</button></header><VerificationGate onSubmit={() => setReviewed(true)} />{reviewed && <div className="fixed inset-x-5 bottom-6 mx-auto max-w-md rounded-xl border border-emerald-400/20 bg-[#14151b] px-5 py-4 shadow-2xl"><div className="flex gap-3"><Check className="mt-0.5 h-4 w-4 text-emerald-400" /><div><p className="text-sm font-medium">Application sent to the office</p><p className="mt-1 text-xs text-zinc-500">For this preview, your account is now approved.</p><button onClick={() => setSession("feed")} className="mt-3 text-xs font-medium text-violet-300">Enter Geajao <ArrowRight className="ml-1 inline h-3 w-3" /></button></div></div></div>}</div>;
   return <Feed onLogout={() => setSession("auth")} />;
 };
