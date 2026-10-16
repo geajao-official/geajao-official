@@ -82,7 +82,7 @@ function FilteredText({ text }: { text: string }) {
   return <>{text.split(/(\s+)/).map((part, index) => badWords.some((word) => part.toLowerCase().includes(word)) ? <span key={index} className="rounded bg-zinc-700/80 px-1 text-transparent blur-[4px]" title="Sensitive language filtered">{part}</span> : <span key={index}>{part}</span>)}</>;
 }
 
-function AuthScreen() {
+function AuthScreen({ onSignIn }: { onSignIn: () => void }) {
   const navigate = useNavigate();
   const [registering, setRegistering] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
@@ -91,7 +91,7 @@ function AuthScreen() {
   const [form, setForm] = useState({ username: "", password: "", name: "", contact: "" });
 
   const update = (key: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement>) => setForm({ ...form, [key]: event.target.value });
-  const enter = (event: React.FormEvent) => { event.preventDefault(); setSubmitted(true); };
+  const enter = (event: React.FormEvent) => { event.preventDefault(); if (registering) { setSubmitted(true); } else { onSignIn(); } };
 
   if (showAdmin) return (
     <main className="flex min-h-screen items-center justify-center bg-[#09090b] px-5 py-10 text-zinc-100">
@@ -156,7 +156,7 @@ function Feed({ onLogout }: { onLogout: () => void }) {
 const Index = () => {
   const [session, setSession] = useState<"auth" | "verification" | "feed">("auth");
   const [reviewed, setReviewed] = useState(false);
-  if (session === "auth") return <AuthScreen />;
+  if (session === "auth") return <AuthScreen onSignIn={() => { setReviewed(false); setSession("verification"); }} />;
   if (session === "verification") return <div className="min-h-screen bg-[#09090b] px-5 text-zinc-100"><header className="mx-auto flex max-w-5xl items-center justify-between py-6"><Logo /><button onClick={() => setSession("auth")} className="text-xs text-zinc-500 hover:text-zinc-200">Sign out</button></header><VerificationGate onSubmit={() => setReviewed(true)} />{reviewed && <div className="fixed inset-x-5 bottom-6 mx-auto max-w-md rounded-xl border border-emerald-400/20 bg-[#14151b] px-5 py-4 shadow-2xl"><div className="flex gap-3"><Check className="mt-0.5 h-4 w-4 text-emerald-400" /><div><p className="text-sm font-medium">Application sent to the office</p><p className="mt-1 text-xs text-zinc-500">For this preview, your account is now approved.</p><button onClick={() => setSession("feed")} className="mt-3 text-xs font-medium text-violet-300">Enter Geajao <ArrowRight className="ml-1 inline h-3 w-3" /></button></div></div></div>}</div>;
   return <Feed onLogout={() => setSession("auth")} />;
 };
