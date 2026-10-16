@@ -28,7 +28,7 @@ const Admin = () => {
   const notify = (message: string) => { setNotice(message); window.setTimeout(() => setNotice(""), 3000); };
 
   const loadPosts = async () => {
-    const { data, error } = await supabase.rpc("list_admin_posts_json", { admin_pin: PIN });
+    const { data, error } = await supabase.rpc("list_admin_posts_v2", { admin_pin: PIN });
     if (error) notify(`Posts could not be loaded — ${error.message}`);
     else setPosts(data ?? []);
   };
