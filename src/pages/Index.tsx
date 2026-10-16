@@ -14,7 +14,7 @@ type SiteMedia = { id: string; kind: "image" | "audio"; url: string; name: strin
 type Post = { id: string; author_id: string; name: string; handle: string; time: string; initials: string; copy: string; likes: number; liked: boolean; media?: Media };
 const badWords = ["idiot", "stupid", "hate", "damn"];
 
-function Logo() { return <div className="flex items-center gap-3"><BrandLogo /><span className="text-[17px] font-semibold tracking-[-0.03em] text-zinc-100">Cadet</span></div>; }
+function Logo() { return <BrandLogo />; }
 function Avatar({ initials = "?", size = "md" }: { initials?: string; size?: "sm" | "md" }) { return <div className={`flex shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-400/80 to-indigo-600 font-semibold text-white ring-2 ring-violet-400/10 ${size === "sm" ? "h-8 w-8 text-[10px]" : "h-10 w-10 text-xs"}`}>{initials}</div>; }
 function FilteredText({ text }: { text: string }) { return <>{text.split(/(\s+)/).map((part, index) => badWords.some((word) => part.toLowerCase().includes(word)) ? <span key={index} className="rounded bg-zinc-700/80 px-1 text-transparent blur-[4px]" title="Sensitive language filtered">{part}</span> : <span key={index}>{part}</span>)}</>; }
 
