@@ -10,7 +10,7 @@ const TeamFooter = ({ logoUrl }: { logoUrl: string }) => <footer className="poin
 const BrandLogo = ({ showFooter = true }: { showFooter?: boolean }) => {
   const [logoUrl, setLogoUrl] = useState("");
   const [teamLogoUrl, setTeamLogoUrl] = useState("");
-  const [hasSession, setHasSession] = useState(false);
+  const [hasSession, setHasSession] = useState<boolean | null>(null);
   const isAdmin = window.location.pathname === "/admin";
 
   useEffect(() => {
@@ -27,7 +27,7 @@ const BrandLogo = ({ showFooter = true }: { showFooter?: boolean }) => {
 
   const uploadTeamLogo = async (event: ChangeEvent<HTMLInputElement>) => { const file = event.target.files?.[0]; if (!file) return; const url = await readFile(file); const { data } = await supabase.rpc("save_team_logo", { admin_pin: "2026", logo_url: url }); if (data?.value) setTeamLogoUrl(data.value); event.target.value = ""; };
   const mark = logoUrl ? <img src={logoUrl} alt="Cadet logo" className={`h-12 w-auto max-w-28 rounded-xl object-contain object-left ring-1 ring-violet-400/30 ${logoMotion}`} /> : <div className={`relative flex h-12 w-12 items-center justify-center rounded-xl bg-violet-500/15 ring-1 ring-violet-400/30 ${logoMotion}`}><div className="absolute h-7 w-7 rounded-full border-2 border-violet-400" /><Check className="relative h-5 w-5 text-violet-300" strokeWidth={3} /></div>;
-  return <><div className="flex items-center gap-3">{mark}{isAdmin && <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-700 px-2.5 py-2 text-[10px] text-zinc-400 hover:text-violet-200"><Upload className="h-3 w-3" /> Team logo<input type="file" accept="image/*" className="sr-only" onChange={(event) => void uploadTeamLogo(event)} /></label>}</div>{showFooter && !hasSession && !isAdmin && <TeamFooter logoUrl={teamLogoUrl} />}</>;
+  return <><div className="flex items-center gap-3">{mark}{isAdmin && <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-zinc-700 px-2.5 py-2 text-[10px] text-zinc-400 hover:text-violet-200"><Upload className="h-3 w-3" /> Team logo<input type="file" accept="image/*" className="sr-only" onChange={(event) => void uploadTeamLogo(event)} /></label>}</div>{showFooter && hasSession === false && !isAdmin && <TeamFooter logoUrl={teamLogoUrl} />}</>;
 };
 
 export default BrandLogo;
