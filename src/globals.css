@@ -44,6 +44,7 @@
   main.relative h2 { background: linear-gradient(105deg, #ffffff 0%, #ddd6fe 52%, #a78bfa 100%); background-clip: text; -webkit-background-clip: text; color: transparent; font-size: 1.65rem; font-weight: 700; letter-spacing: -0.035em; text-shadow: 0 0 28px rgba(167, 139, 250, 0.16); }
   main.relative .text-xs:not(.old-english-font), main.relative .text-sm:not(.old-english-font), main.relative label { font-family: "Times New Roman", Times, serif; }
   footer { font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  footer p.text-base { font-family: "UnifrakturMaguntia", "Old English Text MT", cursive; font-size: 1.2rem; }
   button, input, textarea { font: inherit; }
   button, label, img { transform-style: preserve-3d; }
   button:not(:disabled), label[class*="cursor-pointer"], img { transition: transform 280ms ease, box-shadow 280ms ease, filter 280ms ease, border-color 280ms ease; }
