@@ -20,7 +20,10 @@ const BrandLogo = ({ showFooter = true }: { showFooter?: boolean }) => {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     let node: Node | null;
     while ((node = walker.nextNode())) {
-      if (node.nodeValue?.includes("A considered space for real people")) node.nodeValue = node.nodeValue.replace("A considered space for real people", "A considered space for Cadet");
+      if (node.nodeValue?.includes("A considered space for real people")) {
+        node.nodeValue = node.nodeValue.replace("A considered space for real people", "A considered space for Cadet");
+        node.parentElement?.classList.add("old-english-font");
+      }
     }
     return () => authListener.subscription.unsubscribe();
   }, []);

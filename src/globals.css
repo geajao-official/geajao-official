@@ -40,6 +40,7 @@
   body { @apply bg-background text-foreground antialiased; font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   main, section, footer { font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   header, nav { font-family: "UnifrakturMaguntia", "Old English Text MT", serif; }
+  .old-english-font { font-family: "UnifrakturMaguntia", "Old English Text MT", serif; }
   footer { font-family: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   button, input, textarea { font: inherit; }
   button, label, img { transform-style: preserve-3d; }
