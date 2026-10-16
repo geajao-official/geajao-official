@@ -29,28 +29,31 @@ const Admin = () => {
 
   const load = async () => {
     setBusy(true);
-    try {
-      const [profileResult, postResult, mediaResult] = await Promise.all([
-        supabase.rpc("list_admin_profiles", { admin_pin: PIN }),
-        supabase.rpc("list_admin_posts", { admin_pin: PIN }),
-        supabase.rpc("list_admin_site_media", { admin_pin: PIN }),
-      ]);
-      const errors = [
-        profileResult.error && `accounts: ${profileResult.error.message}`,
-        postResult.error && `posts: ${postResult.error.message}`,
-        mediaResult.error && `media: ${mediaResult.error.message}`,
-      ].filter(Boolean);
-      if (errors.length) {
-        notify(`Database connection failed — ${errors.join(" · ")}`);
-        return;
-      }
-      setProfiles(profileResult.data ?? []);
-      setPosts(postResult.data ?? []);
-      setMedia(mediaResult.data ?? []);
-      setSelected((current) => current ? (profileResult.data ?? []).find((item: Profile) => item.id === current.id) ?? current : (profileResult.data ?? [])[0] ?? null);
-    } finally {
+    const results = await Promise.allSettled([
+      supabase.rpc("list_admin_profiles", { admin_pin: PIN }),
+      supabase.rpc("list_admin_posts", { admin_pin: PIN }),
+      supabase.rpc("list_admin_site_media", { admin_pin: PIN }),
+    ]);
+    const [profileResult, postResult, mediaResult] = results;
+    const errors = results.map((result, index) => {
+      const resource = ["accounts", "posts", "media"][index];
+      return result.status === "rejected"
+        ? `${resource}: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`
+        : result.value.error && `${resource}: ${result.value.error.message}`;
+    }).filter(Boolean);
+    if (errors.length) {
+      notify(`Database connection failed — ${errors.join(" · ")}`);
       setBusy(false);
+      return;
     }
+    const profilesData = profileResult.status === "fulfilled" ? profileResult.value.data ?? [] : [];
+    const postsData = postResult.status === "fulfilled" ? postResult.value.data ?? [] : [];
+    const mediaData = mediaResult.status === "fulfilled" ? mediaResult.value.data ?? [] : [];
+    setProfiles(profilesData);
+    setPosts(postsData);
+    setMedia(mediaData);
+    setSelected((current) => current ? profilesData.find((item: Profile) => item.id === current.id) ?? current : profilesData[0] ?? null);
+    setBusy(false);
   };
 
   useEffect(() => { if (authorized) void load(); }, [authorized]);
