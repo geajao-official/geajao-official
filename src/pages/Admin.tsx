@@ -1,12 +1,13 @@
 import { useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Check, Clock3, FileCheck2, Flag, Search, ShieldAlert, ShieldCheck, Trash2, Users } from "lucide-react";
 
-type Applicant = { id: number; name: string; handle: string; initials: string; submitted: string; file: string; preview?: string };
-const blank: Applicant = { id: 0, name: "No applicant selected", handle: "", initials: "—", submitted: "", file: "" };
+type Applicant = { id: string; name: string; handle: string; initials: string; submitted: string; file: string; preview?: string };
+const blank: Applicant = { id: "", name: "No applicant selected", handle: "", initials: "—", submitted: "", file: "" };
 const loadApplicants = (): Applicant[] => { const stored = sessionStorage.getItem("geajao-applicant"); return stored ? [JSON.parse(stored) as Applicant] : []; };
 
 function Mark({ initials }: { initials: string }) { return <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-violet-500/20 text-xs font-semibold text-violet-200">{initials}</div>; }
@@ -19,7 +20,7 @@ const Admin = () => {
   const [queue, setQueue] = useState(loadApplicants);
   const [selected, setSelected] = useState<Applicant>(loadApplicants()[0] ?? blank);
   const [query, setQuery] = useState("");
-  const [approved, setApproved] = useState<number[]>([]);
+  const [approved, setApproved] = useState<string[]>([]);
   const [blocked, setBlocked] = useState<string[]>([]);
   const [restricted, setRestricted] = useState<Record<string, string>>({});
   const [notice, setNotice] = useState("");
@@ -29,7 +30,7 @@ const Admin = () => {
 
   if (!authorized) return <main className="flex min-h-screen items-center justify-center bg-[#09090b] px-5 text-zinc-100"><div className="w-full max-w-[390px] rounded-2xl border border-zinc-800 bg-[#14151b] p-7 text-center"><ShieldCheck className="mx-auto h-6 w-6 text-violet-300" /><h1 className="mt-5 text-xl font-semibold">Admin PIN required</h1><p className="mt-2 text-sm text-zinc-500">Authorized staff only.</p><Input autoFocus value={pin} onChange={(event) => setPin(event.target.value)} type="password" placeholder="Enter PIN" className="mt-6 h-11 border-zinc-700 bg-[#0f1014] text-center tracking-[0.3em]" /><Button onClick={() => pin === "2026" ? (sessionStorage.setItem("geajao-admin", "1"), setAuthorized(true)) : notify("That PIN does not match.")} className="mt-3 h-11 w-full rounded-xl bg-violet-600 text-white hover:bg-violet-500">Unlock workspace</Button>{notice && <p className="mt-3 text-xs text-red-400">{notice}</p>}<button onClick={() => navigate("/")} className="mt-5 text-xs text-zinc-600">Return to sign in</button></div></main>;
 
-  const approve = () => { if (!selected.id) return notify("There are no accounts waiting for review."); setApproved([...approved, selected.id]); sessionStorage.setItem("geajao-verification", "approved"); notify(`${selected.name} is now verified.`); };
+  const approve = async () => { if (!selected.id) return notify("There are no accounts waiting for review."); const { error } = await supabase.from("profiles").update({ is_verified: true, verification_status: "approved" }).eq("id", selected.id); if (error) return notify(error.message); setApproved([...approved, selected.id]); sessionStorage.setItem("geajao-verification", "approved"); notify(`${selected.name} is now verified.`); };
   const toggleBlock = () => { if (!selected.id) return notify("Select an account first."); const isBlocked = blocked.includes(selected.handle); setBlocked(isBlocked ? blocked.filter((item) => item !== selected.handle) : [...blocked, selected.handle]); notify(isBlocked ? `@${selected.handle} was unblocked.` : `@${selected.handle} was blocked.`); };
   const restrict = (duration: string) => { if (!selected.id) return notify("Select an account first."); setRestricted({ ...restricted, [selected.handle]: duration }); notify(`@${selected.handle} restricted for ${duration}.`); };
   const deleteAccount = () => { if (!selected.id) return notify("There are no accounts to delete."); const next = queue.filter((item) => item.id !== selected.id); setQueue(next); setSelected(next[0] ?? blank); sessionStorage.removeItem("geajao-applicant"); notify("Account deleted."); };
