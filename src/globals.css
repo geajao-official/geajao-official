@@ -56,14 +56,12 @@
   footer p.text-base:hover { color: transparent; }
   footer p.text-base:hover::after { opacity: 1; }
   button, input, textarea { font: inherit; }
-  button, label, img { transform-style: preserve-3d; }
-  button:not(:disabled), label[class*="cursor-pointer"], img { transition: transform 280ms ease, box-shadow 280ms ease, filter 280ms ease, border-color 280ms ease; }
-  button:not(:disabled):hover, label[class*="cursor-pointer"]:hover { transform: none; box-shadow: 0 8px 20px rgba(124, 58, 237, 0.16); }
-  img:hover { transform: perspective(700px) translateY(-2px) rotateY(-2deg) scale(1.015); filter: saturate(1.08) brightness(1.04); }
-  input, textarea { transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease; }
-  input:focus, textarea:focus { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(124, 58, 237, 0.14); }
-  [class*="rounded-2xl"][class*="border"] { transform-style: preserve-3d; transition: transform 320ms ease, box-shadow 320ms ease, border-color 320ms ease; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16); }
-  [class*="rounded-2xl"][class*="border"]:hover { transform: perspective(1100px) translateY(-3px) rotateX(0.5deg); box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24), 0 8px 20px rgba(124, 58, 237, 0.08); border-color: rgba(139, 92, 246, 0.3); }
+  input, textarea { transition: box-shadow 220ms ease, border-color 220ms ease; }
+  input:focus, textarea:focus { box-shadow: 0 8px 20px rgba(124, 58, 237, 0.14); }
+  button:not(:disabled), label[class*="cursor-pointer"] { transition: box-shadow 220ms ease, border-color 220ms ease, color 220ms ease, background-color 220ms ease; }
+  button:not(:disabled):hover, label[class*="cursor-pointer"]:hover { box-shadow: 0 8px 20px rgba(124, 58, 237, 0.16); }
+  [class*="rounded-2xl"][class*="border"] { transition: box-shadow 260ms ease, border-color 260ms ease; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16); }
+  [class*="rounded-2xl"][class*="border"]:hover { box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22); border-color: rgba(139, 92, 246, 0.3); }
   ::selection { background: rgba(139, 92, 246, 0.35); color: #fff; }
 }
 
